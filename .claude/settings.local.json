@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run dev:*)",
+      "Bash(xargs ls:*)",
+      "Read(//Users/ya/Documents/hku sem1课程/7607 nlp/final project/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
