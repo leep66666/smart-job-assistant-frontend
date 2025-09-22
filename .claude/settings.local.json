@@ -3,7 +3,12 @@
     "allow": [
       "Bash(npm run dev:*)",
       "Bash(xargs ls:*)",
-      "Read(//Users/ya/Documents/hku sem1课程/7607 nlp/final project/**)"
+      "Read(//Users/ya/Documents/hku sem1课程/7607 nlp/final project/**)",
+      "Bash(git commit:*)",
+      "Bash(tree:*)",
+      "Bash(rm:*)",
+      "Bash(rmdir:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []
