@@ -6,7 +6,6 @@ interface AppStore extends AppState {
   setResumeFile: (file: File) => void;
   setJobDescriptionFile: (file: File) => void;
   generateResume: () => Promise<void>;
-  generateQuestions: () => Promise<void>;
   clearResumeState: () => void;
   clearInterviewState: () => void;
 }
@@ -16,8 +15,15 @@ const initialResumeState: ResumeGenerationState = {
 };
 
 const initialInterviewState: InterviewState = {
+  sessionId: undefined,
   questions: [],
+  currentIndex: 0,
+  answers: {},
   isGenerating: false,
+  isSubmitting: false,
+  warnings: [],
+  error: undefined,
+  report: undefined,
 };
 
 export const useAppStore = create<AppStore>((set, get) => ({
@@ -77,6 +83,10 @@ export const useAppStore = create<AppStore>((set, get) => ({
             ...state.resume,
             isGenerating: false,
             generatedResume: response.generatedResume,
+            downloadMd: response.downloadMd,
+            downloadPdf: response.downloadPdf ?? null,
+            fileId: response.fileId,
+            warnings: response.warnings,
           },
         }));
       } else {
@@ -84,69 +94,23 @@ export const useAppStore = create<AppStore>((set, get) => ({
           resume: {
             ...state.resume,
             isGenerating: false,
+            downloadMd: undefined,
+            downloadPdf: null,
+            fileId: undefined,
+            warnings: undefined,
             error: response.message || 'Failed to generate resume',
           },
         }));
       }
-    } catch (error) {
+    } catch {
       set((state) => ({
         resume: {
           ...state.resume,
           isGenerating: false,
-          error: 'An unexpected error occurred. Please try again.',
-        },
-      }));
-    }
-  },
-
-  generateQuestions: async () => {
-    const { resume } = get();
-
-    if (!resume.jobDescriptionFile) {
-      set((state) => ({
-        interview: {
-          ...state.interview,
-          error: 'Please upload a job description file.',
-        },
-      }));
-      return;
-    }
-
-    set((state) => ({
-      interview: {
-        ...state.interview,
-        isGenerating: true,
-        error: undefined,
-      },
-    }));
-
-    try {
-      const response = await resumeService.generateQuestions({
-        jobDescriptionFile: resume.jobDescriptionFile,
-      });
-
-      if (response.success) {
-        set((state) => ({
-          interview: {
-            ...state.interview,
-            isGenerating: false,
-            questions: response.questions,
-          },
-        }));
-      } else {
-        set((state) => ({
-          interview: {
-            ...state.interview,
-            isGenerating: false,
-            error: response.message || 'Failed to generate questions',
-          },
-        }));
-      }
-    } catch (error) {
-      set((state) => ({
-        interview: {
-          ...state.interview,
-          isGenerating: false,
+          downloadMd: undefined,
+          downloadPdf: null,
+          fileId: undefined,
+          warnings: undefined,
           error: 'An unexpected error occurred. Please try again.',
         },
       }));

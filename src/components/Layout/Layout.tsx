@@ -35,6 +35,14 @@ const Layout = ({ children }: LayoutProps) => {
               >
                 Resume Generator
               </Link>
+              <Link
+                to="/interview-coach"
+                className={`text-gray-600 hover:text-blue-600 ${
+                  location.pathname === '/interview-coach' ? 'text-blue-600 font-medium' : ''
+                }`}
+              >
+                Interview Coach
+              </Link>
             </div>
           </div>
         </div>

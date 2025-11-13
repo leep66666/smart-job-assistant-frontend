@@ -17,16 +17,12 @@ export interface GenerateResumeRequest {
 export interface GenerateResumeResponse {
   success: boolean;
   generatedResume: string;
-  message?: string;
-}
-
-export interface GenerateQuestionsRequest {
-  jobDescriptionFile: File;
-}
-
-export interface GenerateQuestionsResponse {
-  success: boolean;
-  questions: string[];
+  downloadMd?: string;
+  downloadPdf?: string | null;
+  fileId?: string;
+  warnings?: string[];
+  resumeSaved?: string;
+  jdSaved?: string;
   message?: string;
 }
 
@@ -52,10 +48,75 @@ export const resumeService = {
       };
     }
   },
+};
 
-  generateQuestions: async (data: GenerateQuestionsRequest): Promise<GenerateQuestionsResponse> => {
+export interface InterviewQuestion {
+  id: string;
+  text: string;
+  durationSeconds: number;
+}
+
+export interface StartInterviewResponse {
+  success: boolean;
+  sessionId: string;
+  questions: InterviewQuestion[];
+  currentQuestionId?: string | null;
+  warnings?: string[];
+  message?: string;
+}
+
+export interface SubmitAnswerResponse {
+  success: boolean;
+  questionId: string;
+  transcript: string;
+  evaluation: {
+    overallScore?: number;
+    summary?: string;
+    strengths?: string[];
+    improvements?: string[];
+    [key: string]: unknown;
+  };
+  durationSeconds: number;
+  nextQuestionId?: string | null;
+  nextQuestionText?: string | null;
+  hasMoreQuestions: boolean;
+  warnings?: string[];
+  message?: string;
+}
+
+export interface InterviewReportResponse {
+  success: boolean;
+  report: {
+    summary: {
+      sessionId: string;
+      questionCount: number;
+      answeredCount: number;
+      averageScore?: number | null;
+      generatedAt: string;
+    };
+    items: Array<{
+      questionId: string;
+      question: string;
+      durationSeconds?: number | null;
+      transcript?: string | null;
+      evaluation?: SubmitAnswerResponse['evaluation'] | null;
+      warnings?: string[];
+    }>;
+    downloadName: string;
+  };
+  markdown: string;
+  downloadUrl: string;
+  message?: string;
+}
+
+export const interviewService = {
+  startInterview: async (
+    jobDescriptionFile?: File,
+  ): Promise<StartInterviewResponse> => {
     const formData = new FormData();
-    formData.append('jobDescription', data.jobDescriptionFile);
+    if (jobDescriptionFile) {
+      formData.append('jobDescription', jobDescriptionFile);
+    }
 
     try {
       const response = await api.post('/interview/questions', formData, {
@@ -65,11 +126,76 @@ export const resumeService = {
       });
       return response.data;
     } catch (error) {
-      console.error('Error generating questions:', error);
+      console.error('Error starting interview session:', error);
       return {
         success: false,
+        sessionId: '',
         questions: [],
-        message: 'Failed to generate questions. Please try again.',
+        message: 'Failed to start interview session. Please try again.',
+      };
+    }
+  },
+
+  submitAnswer: async ({
+    sessionId,
+    questionId,
+    audioBlob,
+    elapsedSeconds,
+  }: {
+    sessionId: string;
+    questionId: string;
+    audioBlob: Blob;
+    elapsedSeconds: number;
+  }): Promise<SubmitAnswerResponse> => {
+    const formData = new FormData();
+    formData.append('sessionId', sessionId);
+    formData.append('questionId', questionId);
+    formData.append('elapsedSeconds', String(elapsedSeconds));
+    formData.append('audio', audioBlob, `${questionId}.webm`);
+
+    try {
+      const response = await api.post('/interview/answer', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error submitting interview answer:', error);
+      return {
+        success: false,
+        questionId,
+        transcript: '',
+        evaluation: {},
+        durationSeconds: elapsedSeconds,
+        hasMoreQuestions: true,
+        message: 'Failed to submit answer. Please try again.',
+      };
+    }
+  },
+
+  fetchReport: async (sessionId: string): Promise<InterviewReportResponse> => {
+    try {
+      const response = await api.get(`/interview/report/${sessionId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching interview report:', error);
+      return {
+        success: false,
+        report: {
+          summary: {
+            sessionId,
+            questionCount: 0,
+            answeredCount: 0,
+            averageScore: null,
+            generatedAt: new Date().toISOString(),
+          },
+          items: [],
+          downloadName: '',
+        },
+        markdown: '',
+        downloadUrl: '',
+        message: 'Failed to fetch interview report. Please try again.',
       };
     }
   },

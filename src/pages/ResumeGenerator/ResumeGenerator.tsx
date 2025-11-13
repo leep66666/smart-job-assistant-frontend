@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import FileUpload from '../../components/FileUpload/FileUpload';
 import { useAppStore } from '../../store';
 
@@ -12,6 +12,15 @@ const ResumeGenerator = () => {
   } = useAppStore();
 
   const [activeTab, setActiveTab] = useState<'upload' | 'result'>('upload');
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedContent, setEditedContent] = useState('');
+
+  // 当简历生成后，初始化编辑内容
+  useEffect(() => {
+    if (resume.generatedResume && !editedContent) {
+      setEditedContent(resume.generatedResume);
+    }
+  }, [resume.generatedResume, editedContent]);
 
   const handleResumeUpload = (file: File) => {
     setResumeFile(file);
@@ -24,8 +33,31 @@ const ResumeGenerator = () => {
   const handleGenerate = async () => {
     await generateResume();
     if (resume.generatedResume) {
+      setEditedContent(resume.generatedResume);
+      setIsEditing(false);
       setActiveTab('result');
     }
+  };
+
+  const handleStartEdit = () => {
+    setEditedContent(resume.generatedResume || '');
+    setIsEditing(true);
+  };
+
+  const handleCancelEdit = () => {
+    setEditedContent(resume.generatedResume || '');
+    setIsEditing(false);
+  };
+
+  const handleSaveEdit = () => {
+    // 更新 store 中的内容
+    useAppStore.setState((state) => ({
+      resume: {
+        ...state.resume,
+        generatedResume: editedContent,
+      },
+    }));
+    setIsEditing(false);
   };
 
   const handleReset = () => {
@@ -125,29 +157,88 @@ const ResumeGenerator = () => {
         <div className="bg-white rounded-lg shadow-md p-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-semibold text-gray-900">Generated Resume</h2>
-            <div className="space-x-2">
+            <div className="space-x-2 flex items-center">
               <button
-                onClick={() => setActiveTab('upload')}
+                onClick={() => {
+                  setActiveTab('upload');
+                  setIsEditing(false);
+                }}
                 className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
               >
-                Edit Files
+                Upload New Files
               </button>
-              <button
-                disabled
-                className="px-4 py-2 bg-gray-300 text-gray-500 rounded-md cursor-not-allowed"
-              >
-                Download PDF
-              </button>
+              {resume.downloadMd ? (
+                <a
+                  href={resume.downloadMd}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-4 py-2 bg-blue-50 text-blue-600 rounded-md border border-blue-200 hover:bg-blue-100 transition-colors"
+                >
+                  Download Markdown
+                </a>
+              ) : null}
+              {resume.downloadPdf ? (
+                <a
+                  href={resume.downloadPdf}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  Download PDF
+                </a>
+              ) : (
+                <button
+                  disabled
+                  className="px-4 py-2 bg-gray-300 text-gray-500 rounded-md cursor-not-allowed"
+                >
+                  PDF Not Available
+                </button>
+              )}
             </div>
           </div>
 
           {resume.generatedResume ? (
             <div className="bg-gray-50 p-6 rounded-lg border">
-              <div className="prose max-w-none">
-                <pre className="whitespace-pre-wrap text-sm text-gray-800">
-                  {resume.generatedResume}
-                </pre>
-              </div>
+              {isEditing ? (
+                <div className="space-y-4">
+                  <textarea
+                    value={editedContent}
+                    onChange={(e) => setEditedContent(e.target.value)}
+                    className="w-full h-96 p-4 border border-gray-300 rounded-md font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Edit your resume content here..."
+                  />
+                  <div className="flex justify-end space-x-2">
+                    <button
+                      onClick={handleCancelEdit}
+                      className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleSaveEdit}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                    >
+                      Save Changes
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="prose max-w-none">
+                    <pre className="whitespace-pre-wrap text-sm text-gray-800">
+                      {resume.generatedResume}
+                    </pre>
+                  </div>
+                  <div className="flex justify-end">
+                    <button
+                      onClick={handleStartEdit}
+                      className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+                    >
+                      Edit Content
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <div className="text-center py-12">
@@ -165,6 +256,17 @@ const ResumeGenerator = () => {
               </button>
             </div>
           )}
+
+          {resume.warnings && resume.warnings.length > 0 ? (
+            <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+              <h3 className="text-sm font-semibold text-yellow-700 mb-2">Warnings</h3>
+              <ul className="list-disc list-inside text-sm text-yellow-800 space-y-1">
+                {resume.warnings.map((warning) => (
+                  <li key={warning}>{warning}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
         </div>
       )}
     </div>

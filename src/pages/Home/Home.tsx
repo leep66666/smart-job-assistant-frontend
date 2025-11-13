@@ -34,15 +34,15 @@ const Home = () => {
               Interview Preparation
             </h3>
             <p className="text-gray-600 mb-4">
-              Generate interview questions and practice with our AI-powered
-              interview simulation tool.
+              Generate interview questions, record your answers, and receive AI-powered feedback
+              with a downloadable evaluation report.
             </p>
-            <button
-              disabled
-              className="inline-block bg-gray-400 text-white px-6 py-2 rounded-md cursor-not-allowed"
+            <Link
+              to="/interview-coach"
+              className="inline-block bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors"
             >
-              Coming Soon
-            </button>
+              Start Practicing
+            </Link>
           </div>
         </div>
 
