@@ -16,6 +16,74 @@ export interface ResumeGenerationState {
   error?: string;
 }
 
+export interface AuthUser {
+  fullName: string;
+  email: string;
+}
+
+export interface AuthState {
+  user?: AuthUser;
+  token?: string;
+  isAuthenticated: boolean;
+  loading: boolean;
+  error?: string;
+}
+
+export interface PersonalInformation {
+  fullName: string;
+  phoneCode: string;
+  phoneNumber: string;
+  email: string;
+}
+
+export interface EducationEntry {
+  degree: string;
+  school: string;
+  startDate: string;
+  endDate: string;
+  major: string;
+  gpa: string;
+}
+
+export interface ExperienceEntry {
+  company: string;
+  title: string;
+  timeframe: string;
+  responsibilities: string;
+}
+
+export interface WorkExperienceEntry extends ExperienceEntry {
+  departureReason: string;
+}
+
+export interface ProjectEntry {
+  name: string;
+  timeframe: string;
+  description: string;
+}
+
+export interface SkillsSection {
+  programming: string;
+  office: string;
+  languages: string;
+}
+
+export interface CompetitionEntry {
+  name: string;
+  level: string;
+  result: string;
+}
+
+export interface ManualResumeFormData {
+  personal: PersonalInformation;
+  education: EducationEntry[];
+  internships: ExperienceEntry[];
+  work: WorkExperienceEntry[];
+  projects: ProjectEntry[];
+  skills: SkillsSection;
+  competitions: CompetitionEntry[];
+}
+
 export interface InterviewQuestion {
   id: string;
   text: string;
@@ -73,4 +141,5 @@ export interface InterviewState {
 export interface AppState {
   resume: ResumeGenerationState;
   interview: InterviewState;
+  auth: AuthState;
 }

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import type { ManualResumeFormData } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -10,8 +11,9 @@ const api = axios.create({
 });
 
 export interface GenerateResumeRequest {
-  resumeFile: File;
+  resumeFile?: File;
   jobDescriptionFile: File;
+  manualData?: ManualResumeFormData;
 }
 
 export interface GenerateResumeResponse {
@@ -29,8 +31,13 @@ export interface GenerateResumeResponse {
 export const resumeService = {
   generateResume: async (data: GenerateResumeRequest): Promise<GenerateResumeResponse> => {
     const formData = new FormData();
-    formData.append('resume', data.resumeFile);
+    if (data.resumeFile) {
+      formData.append('resume', data.resumeFile);
+    }
     formData.append('jobDescription', data.jobDescriptionFile);
+    if (data.manualData) {
+      formData.append('manualResume', JSON.stringify(data.manualData));
+    }
 
     try {
       const response = await api.post('/resume/generate', formData, {

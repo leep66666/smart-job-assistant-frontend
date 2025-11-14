@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAppStore } from '../../store';
 
 interface LayoutProps {
   children: ReactNode;
@@ -7,6 +8,14 @@ interface LayoutProps {
 
 const Layout = ({ children }: LayoutProps) => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const auth = useAppStore((state) => state.auth);
+  const logoutUser = useAppStore((state) => state.logoutUser);
+
+  const handleLogout = () => {
+    logoutUser();
+    navigate('/auth');
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -43,6 +52,28 @@ const Layout = ({ children }: LayoutProps) => {
               >
                 Interview Coach
               </Link>
+              {!auth.isAuthenticated ? (
+                <Link
+                  to="/auth"
+                  className={`text-gray-600 hover:text-blue-600 ${
+                    location.pathname === '/auth' ? 'text-blue-600 font-medium' : ''
+                  }`}
+                >
+                  Log In / Sign Up
+                </Link>
+              ) : (
+                <div className="flex items-center space-x-4">
+                  <span className="text-sm text-gray-600">
+                    {auth.user?.fullName || auth.user?.email}
+                  </span>
+                  <button
+                    onClick={handleLogout}
+                    className="px-3 py-1 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
