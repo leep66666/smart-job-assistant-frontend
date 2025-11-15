@@ -208,4 +208,40 @@ export const interviewService = {
   },
 };
 
+export interface GeneratePPTRequest {
+  resumeFile: File;
+  jobDescriptionFile: File;
+}
+
+export interface GeneratePPTResponse {
+  success: boolean;
+  message?: string;
+  downloadUrl?: string;
+  filename?: string;
+  warnings?: string[];
+}
+
+export const pptService = {
+  generatePPT: async (data: GeneratePPTRequest): Promise<GeneratePPTResponse> => {
+    const formData = new FormData();
+    formData.append('resume', data.resumeFile);
+    formData.append('jobDescription', data.jobDescriptionFile);
+
+    try {
+      const response = await api.post('/ppt/generate', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Error generating PPT:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || '生成PPT失败，请重试',
+      };
+    }
+  },
+};
+
 export default resumeService;

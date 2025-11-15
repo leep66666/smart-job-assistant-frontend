@@ -52,6 +52,14 @@ const Layout = ({ children }: LayoutProps) => {
               >
                 Interview Coach
               </Link>
+              <Link
+                to="/ppt-generator"
+                className={`text-gray-600 hover:text-blue-600 ${
+                  location.pathname === '/ppt-generator' ? 'text-blue-600 font-medium' : ''
+                }`}
+              >
+                PPT Generator
+              </Link>
               {!auth.isAuthenticated ? (
                 <Link
                   to="/auth"

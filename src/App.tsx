@@ -6,6 +6,7 @@ import Home from './pages/Home/Home';
 import InterviewCoach from './pages/InterviewCoach/InterviewCoach';
 import ResumeGenerator from './pages/ResumeGenerator/ResumeGenerator';
 import AuthPage from './pages/Auth/AuthPage';
+import PPTGenerator from './pages/PPTGenerator/PPTGenerator';
 import { useAppStore } from './store';
 
 function App() {
@@ -34,6 +35,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/ppt-generator" element={<PPTGenerator />} />
           <Route path="/auth" element={<AuthPage />} />
         </Routes>
       </Layout>

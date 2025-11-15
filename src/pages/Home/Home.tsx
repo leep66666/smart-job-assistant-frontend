@@ -12,7 +12,7 @@ const Home = () => {
           and interview preparation tools.
         </p>
 
-        <div className="grid md:grid-cols-2 gap-8 mb-12">
+        <div className="grid md:grid-cols-3 gap-8 mb-12">
           <div className="bg-white p-6 rounded-lg shadow-md">
             <h3 className="text-xl font-semibold text-gray-900 mb-3">
               Resume Generator
@@ -42,6 +42,22 @@ const Home = () => {
               className="inline-block bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors"
             >
               Start Practicing
+            </Link>
+          </div>
+
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">
+              PPT Generator
+            </h3>
+            <p className="text-gray-600 mb-4">
+              Generate a professional self-introduction PPT based on your resume and job description
+              using AI-powered content structuring.
+            </p>
+            <Link
+              to="/ppt-generator"
+              className="inline-block bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors"
+            >
+              Generate PPT
             </Link>
           </div>
         </div>
