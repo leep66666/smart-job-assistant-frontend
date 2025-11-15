@@ -23,7 +23,7 @@ const PPTGenerator = () => {
 
   const handleGenerate = async () => {
     if (!resumeFile || !jdFile) {
-      setError('请上传简历和岗位JD文件');
+      setError('Please upload both resume and job description files');
       return;
     }
 
@@ -44,10 +44,10 @@ const PPTGenerator = () => {
         setFilename(response.filename);
         setWarnings(response.warnings || undefined);
       } else {
-        setError(response.message || '生成PPT失败');
+        setError(response.message || 'Failed to generate PPT');
       }
     } catch (err) {
-      setError('生成PPT时发生错误，请重试');
+      setError('An error occurred while generating PPT. Please try again.');
       console.error('Error generating PPT:', err);
     } finally {
       setIsGenerating(false);
@@ -86,9 +86,9 @@ const PPTGenerator = () => {
   return (
     <div className="max-w-4xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">自我介绍PPT生成器</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-4">Self-Introduction PPT Generator</h1>
         <p className="text-lg text-gray-600">
-          上传您的简历和岗位JD，我们将使用AI为您生成一份专业的自我介绍PPT。
+          Upload your resume and job description to generate a professional self-introduction PPT using AI.
         </p>
       </div>
 
@@ -98,8 +98,8 @@ const PPTGenerator = () => {
             <FileUpload
               onFileSelect={handleResumeUpload}
               acceptedTypes="application/pdf,.pdf,.doc,.docx"
-              label="上传简历"
-              description="支持PDF、DOC、DOCX格式，最大10MB"
+              label="Upload Your Resume"
+              description="PDF, DOC, or DOCX files up to 10MB"
               uploadedFile={resumeFile}
             />
           </div>
@@ -107,8 +107,8 @@ const PPTGenerator = () => {
             <FileUpload
               onFileSelect={handleJobDescriptionUpload}
               acceptedTypes="application/pdf,.pdf,.doc,.docx,.txt"
-              label="上传岗位JD"
-              description="支持PDF、DOC、DOCX、TXT格式，最大10MB"
+              label="Upload Job Description"
+              description="PDF, DOC, DOCX, or TXT files up to 10MB"
               uploadedFile={jdFile}
             />
           </div>
@@ -122,7 +122,7 @@ const PPTGenerator = () => {
 
         {warnings && warnings.length > 0 && (
           <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
-            <h3 className="text-sm font-semibold text-yellow-700 mb-2">提示</h3>
+            <h3 className="text-sm font-semibold text-yellow-700 mb-2">Warnings</h3>
             <ul className="list-disc list-inside text-sm text-yellow-800 space-y-1">
               {warnings.map((warning, index) => (
                 <li key={index}>{warning}</li>
@@ -135,9 +135,9 @@ const PPTGenerator = () => {
           <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-md">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-green-700 font-medium">PPT生成成功！</p>
+                <p className="text-green-700 font-medium">PPT generated successfully!</p>
                 <p className="text-sm text-green-600 mt-1">
-                  文件名: {filename}
+                  Filename: {filename}
                 </p>
               </div>
               <a
@@ -145,7 +145,7 @@ const PPTGenerator = () => {
                 download={filename}
                 className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
               >
-                下载PPT
+                Download PPT
               </a>
             </div>
           </div>
@@ -156,7 +156,7 @@ const PPTGenerator = () => {
             onClick={handleReset}
             className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
           >
-            重置
+            Reset
           </button>
           <button
             onClick={handleGenerate}
@@ -167,19 +167,19 @@ const PPTGenerator = () => {
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
             }`}
           >
-            {isGenerating ? '生成中...' : '生成PPT'}
+            {isGenerating ? 'Generating...' : 'Generate PPT'}
           </button>
         </div>
       </div>
 
       <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-blue-900 mb-2">使用说明</h3>
+        <h3 className="text-lg font-semibold text-blue-900 mb-2">Instructions</h3>
         <ul className="list-disc list-inside text-sm text-blue-800 space-y-2">
-          <li>上传您的简历文件（PDF或Word格式）</li>
-          <li>上传目标岗位的JD文件（PDF、Word或TXT格式）</li>
-          <li>点击"生成PPT"按钮，系统将使用AI分析并生成PPT内容结构</li>
-          <li>生成完成后，您可以下载PPT文件</li>
-          <li>PPT将包含封面、个人简介、核心技能、项目经历、优势总结等内容</li>
+          <li>Upload your resume file (PDF or Word format)</li>
+          <li>Upload the target job description file (PDF, Word, or TXT format)</li>
+          <li>Click the "Generate PPT" button to analyze and generate PPT content structure using AI</li>
+          <li>Once generated, you can download the PPT file</li>
+          <li>The PPT will include cover page, personal introduction, core skills, project experience, strengths summary, and more</li>
         </ul>
       </div>
     </div>
