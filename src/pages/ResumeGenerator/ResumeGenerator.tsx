@@ -112,6 +112,9 @@ const ResumeGenerator = () => {
   const [activeTab, setActiveTab] = useState<'upload' | 'result'>('upload');
   const [manualResume, setManualResume] = useState<ManualResumeFormData>(createInitialManualForm());
   const [otherNotes, setOtherNotes] = useState('');
+  const [previewUrl, setPreviewUrl] = useState<string | undefined>(undefined);
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState<string | undefined>(undefined);
 
   const handleResumeUpload = (file: File) => {
     setResumeFile(file);
@@ -135,6 +138,63 @@ const ResumeGenerator = () => {
       setActiveTab('result');
     }
   }, [resume.generatedResume, activeTab]);
+
+  useEffect(() => {
+    let objectUrl: string | undefined;
+    const cleanupObjectUrl = () => {
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+        objectUrl = undefined;
+      }
+    };
+
+    if (!resume.downloadPdf) {
+      setPreviewUrl(undefined);
+      setPreviewError(undefined);
+      setIsPreviewLoading(false);
+      return () => {
+        cleanupObjectUrl();
+      };
+    }
+
+    const controller = new AbortController();
+    setIsPreviewLoading(true);
+    setPreviewError(undefined);
+    setPreviewUrl(undefined);
+
+    const preparePreview = async () => {
+      try {
+        const response = await fetch(resume.downloadPdf as string, {
+          signal: controller.signal,
+          credentials: 'include',
+        });
+        if (!response.ok) {
+          throw new Error(`Failed to fetch PDF preview (${response.status})`);
+        }
+        const blob = await response.blob();
+        objectUrl = URL.createObjectURL(blob);
+        setPreviewUrl(objectUrl);
+      } catch (error) {
+        if (controller.signal.aborted) {
+          return;
+        }
+        console.error('Failed to prepare PDF preview:', error);
+        setPreviewUrl(undefined);
+        setPreviewError('Unable to load PDF preview. Please use the download button above.');
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsPreviewLoading(false);
+        }
+      }
+    };
+
+    void preparePreview();
+
+    return () => {
+      controller.abort();
+      cleanupObjectUrl();
+    };
+  }, [resume.downloadPdf]);
 
   const handleReset = () => {
     clearResumeState();
@@ -322,13 +382,21 @@ const ResumeGenerator = () => {
               {resume.downloadPdf ? (
                 <div className="mt-6">
                   <h3 className="text-xl font-semibold text-gray-900 mb-3">PDF Preview</h3>
-                  <div className="border rounded-lg overflow-hidden bg-white h-[600px]">
-                    <iframe
-                      title="Generated Resume PDF Preview"
-                      src={`${resume.downloadPdf}#toolbar=0`}
-                      className="w-full h-full"
-                    />
-                  </div>
+                  {previewUrl ? (
+                    <div className="border rounded-lg overflow-hidden bg-white h-[600px]">
+                      <iframe
+                        title="Generated Resume PDF Preview"
+                        src={previewUrl}
+                        className="w-full h-full"
+                      />
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500">
+                      {isPreviewLoading
+                        ? 'Preparing PDF preview...'
+                        : previewError ?? 'PDF preview is currently unavailable. Please try again shortly.'}
+                    </p>
+                  )}
                 </div>
               ) : (
                 <p className="mt-6 text-sm text-gray-500">
