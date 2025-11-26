@@ -13,6 +13,7 @@ interface AppStore extends AppState {
   setResumeFile: (file: File | undefined) => void;
   setJobDescriptionFile: (file: File) => void;
   generateResume: (manualData?: ManualResumeFormData) => Promise<void>;
+  updateGeneratedResume: (content: string) => void;
   clearResumeState: () => void;
   clearInterviewState: () => void;
   registerUser: (payload: RegisterPayload) => Promise<void>;
@@ -147,6 +148,15 @@ export const useAppStore = create<AppStore>((set, get) => ({
         },
       }));
     }
+  },
+
+  updateGeneratedResume: (content: string) => {
+    set((state) => ({
+      resume: {
+        ...state.resume,
+        generatedResume: content,
+      },
+    }));
   },
 
   clearResumeState: () => {

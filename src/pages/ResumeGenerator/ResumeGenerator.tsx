@@ -106,6 +106,7 @@ const ResumeGenerator = () => {
     setResumeFile,
     setJobDescriptionFile,
     generateResume,
+    updateGeneratedResume,
     clearResumeState,
   } = useAppStore();
 
@@ -115,6 +116,8 @@ const ResumeGenerator = () => {
   const [previewUrl, setPreviewUrl] = useState<string | undefined>(undefined);
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
   const [previewError, setPreviewError] = useState<string | undefined>(undefined);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedContent, setEditedContent] = useState('');
 
   const handleResumeUpload = (file: File) => {
     setResumeFile(file);
@@ -138,6 +141,13 @@ const ResumeGenerator = () => {
       setActiveTab('result');
     }
   }, [resume.generatedResume, activeTab]);
+
+  useEffect(() => {
+    // 当简历内容变化时，如果不在编辑模式，同步编辑内容
+    if (resume.generatedResume && !isEditing) {
+      setEditedContent(resume.generatedResume);
+    }
+  }, [resume.generatedResume, isEditing]);
 
   useEffect(() => {
     let objectUrl: string | undefined;
@@ -201,6 +211,25 @@ const ResumeGenerator = () => {
     setManualResume(createInitialManualForm());
     setOtherNotes('');
     setActiveTab('upload');
+    setIsEditing(false);
+    setEditedContent('');
+  };
+
+  const handleStartEdit = () => {
+    setEditedContent(resume.generatedResume || '');
+    setIsEditing(true);
+  };
+
+  const handleSaveEdit = () => {
+    if (editedContent.trim()) {
+      updateGeneratedResume(editedContent);
+      setIsEditing(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditedContent('');
   };
 
   const manualDataProvided = manualFormHasContent(manualResume);
@@ -221,8 +250,9 @@ const ResumeGenerator = () => {
       <div className="mb-6">
         <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
           <button
+            type="button"
             onClick={() => setActiveTab('upload')}
-            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors cursor-pointer ${
               activeTab === 'upload'
                 ? 'bg-white text-blue-600 shadow-sm'
                 : 'text-gray-600 hover:text-gray-800'
@@ -231,12 +261,13 @@ const ResumeGenerator = () => {
             Upload Files
           </button>
           <button
+            type="button"
             onClick={() => setActiveTab('result')}
             className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
               activeTab === 'result'
-                ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-gray-600 hover:text-gray-800'
-            }`}
+                ? 'bg-white text-blue-600 shadow-sm cursor-pointer'
+                : 'text-gray-600 hover:text-gray-800 cursor-pointer'
+            } ${!resume.generatedResume ? 'opacity-50 cursor-not-allowed' : ''}`}
             disabled={!resume.generatedResume}
           >
             Generated Resume
@@ -309,17 +340,19 @@ const ResumeGenerator = () => {
 
           <div className="mt-8 flex justify-between">
             <button
+              type="button"
               onClick={handleReset}
-              className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+              className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors cursor-pointer rounded-md hover:bg-gray-100"
             >
               Reset
             </button>
             <button
+              type="button"
               onClick={handleGenerate}
               disabled={!canGenerate}
               className={`px-6 py-2 rounded-md font-medium transition-colors ${
                 canGenerate
-                  ? 'bg-blue-600 text-white hover:bg-blue-700'
+                  ? 'bg-blue-600 text-white hover:bg-blue-700 cursor-pointer'
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}
             >
@@ -335,8 +368,9 @@ const ResumeGenerator = () => {
             <h2 className="text-2xl font-semibold text-gray-900">Generated Resume</h2>
             <div className="space-x-2">
               <button
+                type="button"
                 onClick={() => setActiveTab('upload')}
-                className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors cursor-pointer rounded-md hover:bg-gray-100"
               >
                 Edit Files
               </button>
@@ -373,11 +407,51 @@ const ResumeGenerator = () => {
                 </div>
               )}
               <div className="bg-gray-50 p-6 rounded-lg border">
-                <div className="prose max-w-none">
-                  <pre className="whitespace-pre-wrap text-sm text-gray-800">
-                    {resume.generatedResume}
-                  </pre>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    {isEditing ? 'Editing Resume' : 'Resume Content'}
+                  </h3>
+                  {!isEditing ? (
+                    <button
+                      type="button"
+                      onClick={handleStartEdit}
+                      className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors cursor-pointer"
+                    >
+                      Edit Content
+                    </button>
+                  ) : (
+                    <div className="space-x-2">
+                      <button
+                        type="button"
+                        onClick={handleSaveEdit}
+                        className="px-4 py-2 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors cursor-pointer"
+                      >
+                        Save
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleCancelEdit}
+                        className="px-4 py-2 text-sm bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  )}
                 </div>
+                {isEditing ? (
+                  <textarea
+                    value={editedContent}
+                    onChange={(e) => setEditedContent(e.target.value)}
+                    className="w-full h-96 p-4 border border-gray-300 rounded-md font-mono text-sm text-gray-800 bg-white resize-y focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Edit your resume content here..."
+                  />
+                ) : (
+                  <div className="prose max-w-none">
+                    <pre className="whitespace-pre-wrap text-sm text-gray-800">
+                      {resume.generatedResume}
+                    </pre>
+                  </div>
+                )}
               </div>
               {resume.downloadPdf ? (
                 <div className="mt-6">
@@ -413,8 +487,9 @@ const ResumeGenerator = () => {
               </div>
               <p className="text-gray-600">No resume generated yet.</p>
               <button
+                type="button"
                 onClick={() => setActiveTab('upload')}
-                className="mt-4 text-blue-600 hover:text-blue-800"
+                className="mt-4 text-blue-600 hover:text-blue-800 cursor-pointer px-4 py-2 rounded-md hover:bg-blue-50 transition-colors"
               >
                 Upload files to get started
               </button>
